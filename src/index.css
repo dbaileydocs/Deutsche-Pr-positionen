@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Literata", Georgia, serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, sans-serif;
+  --font-label: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light;
+  --background: #f2f7f3;
+  --surface-container-low: #ffffff;
+  --surface-container: #e6f0e8;
+  --surface-container-high: #d7e7da;
+  --on-surface: #1e2d24;
+  --on-surface-variant: #4a5e51;
+  --outline: #8ba594;
+  --outline-variant: #cde0d1;
+  --primary: #2e6b47;
+  --primary-hover: #245538;
+  --on-primary: #ffffff;
+  --primary-container: #d8efe0;
+  --on-primary-container: #19472c;
+  --secondary: #4e6b58;
+  --tertiary: #845424;
+  --tertiary-container: #f5e2c4;
+  --on-tertiary-container: #5f3a12;
+  --info-container: #e2eff7;
+  --on-info-container: #1b4965;
+  --error: #b63835;
+  --error-container: #fce8e7;
+  --on-error-container: #7c1f1d;
+}
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+    background-color: var(--background);
+    color: var(--on-surface);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.perspective-1200 {
+  perspective: 1200px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
