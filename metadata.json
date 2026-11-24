@@ -2,5 +2,7 @@
   "name": "Deutsche Präpositionen",
   "description": "Interactive A1–A2 German preposition and article case studio with 1,000 practice sentences, active-recall flashcards, and a complete grammar reference guide.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

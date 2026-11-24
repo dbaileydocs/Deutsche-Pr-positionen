@@ -5,6 +5,7 @@ import { ALL_PREPOSITIONS } from '../data/frames';
 
 interface QuizPanelProps {
   activePool: QuizQuestion[];
+  poolVersion: number;
   currentIdx: number;
   category: QuizCategoryFilter;
   prep: string;
@@ -30,6 +31,7 @@ const ARTICLE_OPTIONS: Array<{ art: ArticleOption; keyHint: string }> = [
 
 export function QuizPanel({
   activePool,
+  poolVersion,
   currentIdx,
   category,
   prep,
@@ -49,11 +51,11 @@ export function QuizPanel({
   const currentQuestion = activePool[currentIdx] ?? null;
   const isAnswered = chosenAnswer !== null;
 
-  // Reset per-question UI state whenever the displayed question or pool changes
+  // Reset per-question UI state only when navigating questions or changing/reshuffling the pool
   useEffect(() => {
     setChosenAnswer(null);
     setShowHint(false);
-  }, [currentQuestion?.id, activePool]);
+  }, [currentQuestion?.id, currentIdx, poolVersion]);
 
   const handleSelect = (art: ArticleOption) => {
     if (!currentQuestion || isAnswered) return;
@@ -298,12 +300,12 @@ export function QuizPanel({
               type="button"
               disabled={!currentQuestion || isAnswered}
               onClick={() => handleSelect(art)}
-              className={`min-h-[56px] px-4 py-3 rounded-[10px] border flex items-center justify-center gap-2.5 font-headline text-xl font-semibold transition-all duration-150 ${
+              className={`min-h-[56px] px-4 py-3 rounded-[10px] border flex items-center justify-center gap-2.5 font-headline text-xl font-semibold transition-colors duration-150 touch-manipulation select-none ${
                 isThisCorrect
                   ? 'bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)]'
                   : isThisWrong
                   ? 'bg-[var(--error-container)] text-[var(--on-error-container)] border-[var(--error)]'
-                  : 'bg-[var(--surface-container-low)] text-[var(--on-surface)] border-[var(--outline-variant)] shadow-[0_4px_18px_rgb(30_45_36_/_0.06)] hover:enabled:bg-[var(--surface-container)] hover:enabled:-translate-y-0.5 cursor-pointer disabled:cursor-default disabled:opacity-65'
+                  : 'bg-[var(--surface-container-low)] text-[var(--on-surface)] border-[var(--outline-variant)] shadow-[0_4px_18px_rgb(30_45_36_/_0.06)] [@media(hover:hover)]:hover:enabled:bg-[var(--surface-container)] [@media(hover:hover)]:hover:enabled:-translate-y-0.5 active:enabled:scale-[0.98] cursor-pointer disabled:cursor-default disabled:opacity-65'
               }`}
             >
               <span

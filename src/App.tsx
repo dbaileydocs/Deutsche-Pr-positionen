@@ -56,6 +56,8 @@ function loadInitialState(): AppState {
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>(loadInitialState);
+  const [mistakesSnapshotIds, setMistakesSnapshotIds] = useState<number[]>(() => appState.wrongIds);
+  const [poolVersion, setPoolVersion] = useState(0);
   const [resetArmed, setResetArmed] = useState(false);
   const resetTimerRef = useRef<number | null>(null);
 
@@ -76,12 +78,12 @@ export default function App() {
     };
   }, []);
 
-  // Derive active quiz pool
+  // Derive active quiz pool without recomputing mid-question when wrongIds updates
   const activePool = useMemo(() => {
     let filtered = ALL_QUESTIONS;
 
     if (appState.category === 'mistakes') {
-      const wrongSet = new Set(appState.wrongIds);
+      const wrongSet = new Set(mistakesSnapshotIds);
       filtered = filtered.filter((q) => wrongSet.has(q.id));
     } else if (appState.category !== 'all') {
       filtered = filtered.filter((q) => q.cat === appState.category);
@@ -95,7 +97,7 @@ export default function App() {
       return filtered.slice().sort((a, b) => a.id - b.id);
     }
     return seededShuffle(filtered, 777 + appState.shuffleSalt);
-  }, [appState.category, appState.prep, appState.order, appState.shuffleSalt, appState.wrongIds]);
+  }, [appState.category, appState.prep, appState.order, appState.shuffleSalt, mistakesSnapshotIds]);
 
   const safeQuizIdx = activePool.length > 0 ? Math.min(appState.currentIdx, activePool.length - 1) : 0;
 
@@ -133,18 +135,31 @@ export default function App() {
   };
 
   const handleCategoryChange = (category: QuizCategoryFilter) => {
+    if (category === 'mistakes') {
+      setMistakesSnapshotIds(appState.wrongIds);
+    }
+    setPoolVersion((v) => v + 1);
     setAppState((prev) => ({ ...prev, category, currentIdx: 0 }));
   };
 
   const handlePrepChange = (prep: string) => {
+    if (appState.category === 'mistakes') {
+      setMistakesSnapshotIds(appState.wrongIds);
+    }
+    setPoolVersion((v) => v + 1);
     setAppState((prev) => ({ ...prev, prep, currentIdx: 0 }));
   };
 
   const handleOrderChange = (order: QuizOrder) => {
+    setPoolVersion((v) => v + 1);
     setAppState((prev) => ({ ...prev, order, currentIdx: 0 }));
   };
 
   const handleReshuffle = () => {
+    if (appState.category === 'mistakes') {
+      setMistakesSnapshotIds(appState.wrongIds);
+    }
+    setPoolVersion((v) => v + 1);
     setAppState((prev) => ({
       ...prev,
       shuffleSalt: prev.shuffleSalt + 1,
@@ -243,6 +258,8 @@ export default function App() {
 
     if (resetTimerRef.current !== null) window.clearTimeout(resetTimerRef.current);
     setResetArmed(false);
+    setMistakesSnapshotIds([]);
+    setPoolVersion((v) => v + 1);
     setAppState((prev) => ({
       ...DEFAULT_STATE,
       mode: prev.mode,
@@ -302,7 +319,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => handleSwitchMode('quiz')}
-            className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-[10px] border font-semibold cursor-pointer transition-colors whitespace-nowrap ${
+            className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-[10px] border font-semibold cursor-pointer transition-colors whitespace-nowrap touch-manipulation ${
               appState.mode === 'quiz'
                 ? 'bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)] hover:bg-[var(--primary-hover)]'
                 : 'bg-[var(--surface-container)] text-[var(--on-surface)] border-[var(--outline-variant)] hover:bg-[var(--surface-container-high)]'
@@ -315,7 +332,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => handleSwitchMode('flashcards')}
-            className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-[10px] border font-semibold cursor-pointer transition-colors whitespace-nowrap ${
+            className={`inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-[10px] border font-semibold cursor-pointer transition-colors whitespace-nowrap touch-manipulation ${
               appState.mode === 'flashcards'
                 ? 'bg-[var(--primary)] text-[var(--on-primary)] border-[var(--primary)] hover:bg-[var(--primary-hover)]'
                 : 'bg-[var(--surface-container)] text-[var(--on-surface)] border-[var(--outline-variant)] hover:bg-[var(--surface-container-high)]'
@@ -327,7 +344,7 @@ export default function App() {
 
           <a
             href="#grammar-reference"
-            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-[10px] border border-[var(--outline-variant)] bg-transparent hover:bg-[var(--surface-container)] text-[var(--on-surface)] font-semibold transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-[10px] border border-[var(--outline-variant)] bg-transparent hover:bg-[var(--surface-container)] text-[var(--on-surface)] font-semibold transition-colors whitespace-nowrap touch-manipulation"
           >
             <span>Reference Guide</span>
             <ArrowDown className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -337,7 +354,7 @@ export default function App() {
         <button
           type="button"
           onClick={handleResetProgress}
-          className={`inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-[10px] border text-sm font-semibold cursor-pointer transition-colors whitespace-nowrap ${
+          className={`inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-[10px] border text-sm font-semibold cursor-pointer transition-colors whitespace-nowrap touch-manipulation ${
             resetArmed
               ? 'bg-[var(--error-container)] text-[var(--on-error-container)] border-[var(--error)]'
               : 'bg-transparent text-[var(--on-surface-variant)] border-[var(--outline-variant)] hover:bg-[var(--surface-container)]'
@@ -352,6 +369,7 @@ export default function App() {
       {appState.mode === 'quiz' ? (
         <QuizPanel
           activePool={activePool}
+          poolVersion={poolVersion}
           currentIdx={safeQuizIdx}
           category={appState.category}
           prep={appState.prep}
